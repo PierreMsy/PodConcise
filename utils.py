@@ -1,5 +1,5 @@
 from bs4 import BeautifulSoup
-from typing import Dict, Sequence
+from typing import Sequence
 from custom_types import Podcast
 from collections import OrderedDict
 
