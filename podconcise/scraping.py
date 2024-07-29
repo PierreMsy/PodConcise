@@ -1,7 +1,8 @@
 from bs4 import BeautifulSoup
 from typing import Sequence
-from custom_types import Podcast
 from collections import OrderedDict
+
+from podconcise.custom_types import Podcast
 
 
 def parse_podcats(soup_main_podcast: BeautifulSoup) -> Sequence[Podcast]:
