@@ -1,8 +1,23 @@
+import requests
 from bs4 import BeautifulSoup
 from typing import Sequence
 from collections import OrderedDict
 
-from podconcise.custom_types import Podcast
+from podconcise.custom_type import Podcast
+from podconcise.constant import URL_LEX_PODCAST
+
+
+def parse_lex_podcasts() -> Sequence[Podcast]:
+    """
+    Pase Lex Friedman podcasts and return them as a list of Podcasts.
+    """
+    res = requests.get(URL_LEX_PODCAST)
+    html_content = res.content
+    soup_podcasts = BeautifulSoup(html_content, 'html.parser')
+        
+    podcasts = parse_podcats(soup_podcasts)
+
+    return podcasts
 
 
 def parse_podcats(soup_main_podcast: BeautifulSoup) -> Sequence[Podcast]:

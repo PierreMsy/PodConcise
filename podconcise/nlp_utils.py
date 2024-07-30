@@ -1,7 +1,39 @@
 import hashlib
 import numpy as np
+import pandas as pd
 from time import sleep
-from typing import Sequence, Tuple, Union
+from typing import Sequence, Tuple, Union, Dict
+from itertools import product
+from html import unescape
+from unidecode import unidecode
+
+import translators as ts
+from datasets import Dataset, load_metric
+from transformers.tokenization_utils_base import PreTrainedTokenizerBase
+from sklearn.metrics import log_loss
+
+from podconcise.utils import softmax
+from podconcise.constant import DATA_SCIENCE_GUESTS
+
+
+
+def preprocess_podcasts(df_podcast: pd.DataFrame) -> pd.DataFrame:
+    """
+    Basic preprocessing for NLP treatment on the podcast DataFrame.
+    - Remove non standard symbol and lower guest and title.
+    - Add unique and deterministic id.
+    """
+    cols_to_pp = ["guest", "title"]
+    for col in cols_to_pp:
+        df_podcast[col] = np.vectorize(lambda title: unidecode(title))(df_podcast[col])
+        df_podcast[col] = df_podcast[col].str.lower()
+
+    hash_str_vec = np.vectorize(hash_str)
+    df_podcast.insert(0, 'id', hash_str_vec(df_podcast.guest + df_podcast.title))
+
+    assert df_podcast.id.nunique() == len(df_podcast), "colision in the hashing to create unique id!"
+
+    return df_podcast
 
 
 def hash_str(
@@ -106,3 +138,38 @@ def augment_with_backtranslation(
         raise(e)
 
     return res
+
+
+def tokenize_title(batch: Dataset, tokenizer: PreTrainedTokenizerBase) -> Dict[str, np.ndarray]:
+    """
+    Tokenize a given batch of titles.
+    """
+    batch_encoded = tokenizer(
+        batch['title'],
+        return_tensors='pt',
+        padding='max_length',
+        truncation=True,
+        max_length=256,
+    )
+    return batch_encoded
+
+
+metric = load_metric("glue", "mrpc", trust_remote_code=True) # f1 & accuracy
+
+def compute_classification_metrics(eval_preds: Tuple[np.ndarray[np.ndarray[float]], np.ndarray[int]]) -> Dict[str, float]:
+    """
+    Compute a metric dictionary from fiven logit predictions and true labels.
+    """
+    logits, labels = eval_preds
+    pred_labels = np.argmax(logits, axis=-1)
+
+    proba = softmax(logits)
+    proba_1 = proba[:,1]
+    log_loss_value = log_loss(labels, proba_1)
+
+    metrics = metric.compute(predictions=pred_labels, references=labels)
+    metrics["log_likelihood"] = - log_loss_value
+
+    metrics["f1_plus_log_likelihood"] = metrics["f1"] - log_loss_value
+
+    return metrics
