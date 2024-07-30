@@ -3,3 +3,5 @@ transformers
 pandas
 unidecode
 translators
+datasets
+scikit-learn
