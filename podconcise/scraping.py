@@ -9,7 +9,7 @@ from podconcise.constant import URL_LEX_PODCAST
 
 def parse_lex_podcasts() -> Sequence[Podcast]:
     """
-    Pase Lex Friedman podcasts and return them as a list of Podcasts.
+    Parse Lex Friedman podcasts and return them as a list of Podcasts.
     """
     res = requests.get(URL_LEX_PODCAST)
     html_content = res.content
@@ -18,6 +18,18 @@ def parse_lex_podcasts() -> Sequence[Podcast]:
     podcasts = parse_podcats(soup_podcasts)
 
     return podcasts
+
+def parse_episode(url_transcript: str) -> OrderedDict:
+    """
+    Parse a podacst episode and return its transcript as an OrderedDict.
+    """
+    res = requests.get(url_transcript)
+    html_content = res.content
+    soup_transcript = BeautifulSoup(html_content, 'html.parser')
+
+    content = parse_transcript(soup_transcript)
+
+    return content
 
 
 def parse_podcats(soup_main_podcast: BeautifulSoup) -> Sequence[Podcast]:

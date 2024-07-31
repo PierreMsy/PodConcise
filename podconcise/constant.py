@@ -56,3 +56,4 @@ class Label():
     TO_PASS = "to_pass"
     TO_SUMMARIZE = "to_summarize"
     
+LABELS = [Label.TO_PASS, Label.TO_SUMMARIZE]

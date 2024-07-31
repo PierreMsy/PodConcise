@@ -140,12 +140,15 @@ def augment_with_backtranslation(
     return res
 
 
-def tokenize_title(batch: Dataset, tokenizer: PreTrainedTokenizerBase) -> Dict[str, np.ndarray]:
+def tokenize_title(input: Union[Dataset, str], tokenizer: PreTrainedTokenizerBase) -> Dict[str, np.ndarray]:
     """
-    Tokenize a given batch of titles.
+    Tokenize a given batch of titles or title.
     """
+    if not isinstance(input, str):
+        input = input['title']
+
     batch_encoded = tokenizer(
-        batch['title'],
+        input,
         return_tensors='pt',
         padding='max_length',
         truncation=True,
